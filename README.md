@@ -1,5 +1,26 @@
-#NGINX Proxy Reverse for Docker
+#NGINX Proxy Reverse for Docker with Portainer
 
+# Requirements
+
+1. Install [Docker](http://docker.io).
+2. Install [Docker-compose](http://docs.docker.com/compose/install/).
+3. Clone this repository
+
+#How to use - Quick Start
+
+The default configuration will connect Portainer against the local Docker host, using an nginx-proxy container (port 80).
+
+```bash
+# Clone this repository
+git clone https://github.com/perrout/docker-proxy.git
+# Go into the repository
+cd docker-proxy
+# Create the docker proxy network
+docker network create nginx-proxy
+# Run the app
+docker-compose up -d
+```
+And then access Portainer by hitting [http://localhost:9000](http://localhost:9000) with a web browser.
 
 ##Step 1. Starting up nginx-proxy
 
@@ -19,23 +40,40 @@ Installing **nginx-proxy** with Docker
 First, create a new **docker-compose.yml** file in the directory of your choosing (one titled **nginx-proxy** is a good idea), and copy in the following text:
 
 	version: "3"
-	services:
-	  nginx-proxy:
-	    image: jwilder/nginx-proxy
-	    container_name: nginx-proxy
-	    ports:
-	      - "80:80"
-	    volumes:
-	      - /var/run/docker.sock:/tmp/docker.sock:ro
 
+	services:
+		nginx-proxy:
+			build: proxy
+			container_name: docker-proxy
+			restart: always
+			ports:
+				- "80:80"
+				- "443:443"
+			volumes:
+				- /var/run/docker.sock:/tmp/docker.sock:ro
+
+		portainer:
+			image: portainer/portainer
+			container_name: portainer-app
+			restart: always
+			ports:
+				- "9000:9000"
+			command: -H unix:///var/run/docker.sock
+			volumes:
+				- /var/run/docker.sock:/var/run/docker.sock
+				- portainer_data:/data
+
+	volumes:
+		portainer_data:
+		
 	networks:
-	  default:
-	    external:
-	      name: nginx-proxy
+		default:
+			external:
+				name: nginx-proxy
 
 And then run the following **docker-compose** command to get started.
 
-	$ docker-compose run -d
+	$ docker-compose up -d
 
 ###How nginx-proxy works
 

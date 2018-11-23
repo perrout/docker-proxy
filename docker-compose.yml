@@ -4,6 +4,7 @@ services:
   nginx-proxy:
     build: proxy
     container_name: docker-proxy
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -12,6 +13,8 @@ services:
 
   portainer:
     image: portainer/portainer
+    container_name: portainer-app
+    restart: always
     ports:
       - "9000:9000"
     command: -H unix:///var/run/docker.sock
